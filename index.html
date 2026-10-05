@@ -188,9 +188,10 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.32;ba
   </div>
 
   <details class="panel" style="margin-bottom:20px;">
-    <summary style="cursor:pointer;font-weight:600;">Simulator: try the dashboard without the glove</summary>
+    <summary style="cursor:pointer;font-weight:600;">Simulator and audio check</summary>
     <p class="panel-sub" style="margin-top:10px;">Each button sends the same kind of packet the glove sends, so the N-ATLaS call, sentence composer and audio all run normally. Simulated gestures are logged as <b>input = simulator</b> and are never counted in the validation results. They do not test sign recognition.</p>
     <div id="simBtns" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+    <p class="panel-sub" style="margin:14px 0 0;"><button class="btn" type="button" id="audioCheck">Check audio files</button> <span id="audioCheckOut" style="margin-left:8px;"></span></p>
   </details>
 
   <div class="grid">
@@ -326,6 +327,8 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.32;ba
 
   // --- AUDIO FIX: Persistent player to bypass browser autoplay restrictions ---
   const player = new Audio();
+  // false = speak only with the recorded MP3s in the audio/ folder (no browser voice). Set true to allow the browser voice when a recording is missing.
+  const USE_BROWSER_VOICE_FALLBACK = false;
   // A tiny 1-second silent audio track to trick the browser into unlocking the speaker
   const silentWAV = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
 
@@ -453,7 +456,8 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.32;ba
     channelTag.textContent = 'CH' + String(lastEntry.ch).padStart(2,'0');
 
     const voice = currentLang === 'en' ? true : findVoice(LANGS[currentLang].code);
-    noVoiceNote.style.display = (currentLang !== 'en' && !voice) ? 'inline-flex' : 'none';
+    noVoiceNote.textContent = 'Approximate pronunciation \u2014 no native voice installed';
+    noVoiceNote.style.display = (USE_BROWSER_VOICE_FALLBACK && currentLang !== 'en' && !voice) ? 'inline-flex' : 'none';
 
     renderChannelList(lastEntry.ch);
     renderRate();
@@ -470,7 +474,12 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.32;ba
     player.src = audioPath;
     
     player.play().catch(err => {
-      console.warn("MP3 playback failed or file missing (" + audioPath + "). Falling back to browser TTS:", err);
+      console.warn("Recording missing or blocked (" + audioPath + ")", err);
+      if (!USE_BROWSER_VOICE_FALLBACK) {
+        noVoiceNote.textContent = 'Recording missing: ' + audioPath;
+        noVoiceNote.style.display = 'inline-flex';
+        return;
+      }
       if ('speechSynthesis' in window) {
         const utter = new SpeechSynthesisUtterance(text);
         const voice = findVoice(langCode);
@@ -581,6 +590,22 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.32;ba
     b.textContent = g.ch + '. ' + g.en;
     b.addEventListener('click', () => handlePacket(g.en + '|100|' + g.ch, 'simulator'));
     simBtns.appendChild(b);
+  });
+
+  // Checks that all 40 recordings (en/yo/ha/ig x gestures 1-10) exist in the audio/ folder.
+  el('audioCheck').addEventListener('click', async () => {
+    const out = el('audioCheckOut'), missing = [];
+    out.textContent = 'Checking\u2026';
+    await Promise.all(['en', 'yo', 'ha', 'ig'].flatMap(l => GESTURES.map(g => new Promise(res => {
+      const name = l + '_' + g.ch + '.mp3', a = new Audio();
+      let fin = false;
+      const done = ok => { if (fin) return; fin = true; if (!ok) missing.push(name); res(); };
+      a.addEventListener('loadedmetadata', () => done(true), { once: true });
+      a.addEventListener('error', () => done(false), { once: true });
+      setTimeout(() => done(false), 4000);
+      a.preload = 'metadata'; a.src = 'audio/' + name;
+    }))));
+    out.textContent = missing.length ? (40 - missing.length) + ' of 40 found. Missing: ' + missing.sort().join(', ') : 'All 40 recordings found.';
   });
 
   async function writeRx(command){
@@ -825,12 +850,12 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.32;ba
     } catch(e){ natStatus.textContent = 'Cannot reach server'; }
   }
 
-  let sentBuf = [], sentTimer = null, sentSim = false, lastPush = { ch: 0, t: 0 };
+  let sentBuf = [], sentChs = [], sentTimer = null, sentSim = false, lastPush = { ch: 0, t: 0 };
   function sentencePush(g, src){
     const now = Date.now();
     if (lastPush.ch === g.ch && now - lastPush.t < 1500){ lastPush.t = now; return; }
     lastPush = { ch: g.ch, t: now };
-    sentBuf.push(g.en);
+    sentBuf.push(g.en); sentChs.push(g.ch);
     if (src === 'simulator') sentSim = true;
     sentEn.textContent = sentBuf.join(' ');
     clearTimeout(sentTimer);
@@ -841,16 +866,24 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.32;ba
     if (!sentBuf.length) return;
     const en = sentBuf.join(' ');
     const sentInput = sentSim ? 'simulator' : 'glove';
-    sentBuf = []; sentSim = false;
+    const chs = sentChs.slice();
+    sentBuf = []; sentChs = []; sentSim = false;
     sentOut.textContent = '\u2026';
     const out = currentLang === 'en' ? en : await fetchNATLASTranslation(en, LANGS[currentLang].label, currentLang, null, { kind: 'sentence', input: sentInput }, 90);
     sentOut.textContent = out || '(model unavailable)';
-    if (out && 'speechSynthesis' in window){
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(out), v = findVoice(LANGS[currentLang].code);
-      if (v) u.voice = v;
-      u.lang = LANGS[currentLang].code;
-      window.speechSynthesis.speak(u);
+  }
+  // Plays the recorded clip for each gesture of the sentence, in order.
+  let clipRun = 0;
+  async function playClips(chs){
+    const run = ++clipRun;
+    player.pause();
+    for (const ch of chs){
+      if (run !== clipRun) return;
+      await new Promise(res => {
+        const a = new Audio('audio/' + currentLang + '_' + ch + '.mp3');
+        a.onended = res; a.onerror = res;
+        a.play().catch(res);
+      });
     }
   }
 
@@ -862,7 +895,7 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.32;ba
   el('natSave').addEventListener('click', saveAndTest);
   el('natCsv').addEventListener('click', downloadLog);
   el('sentGo').addEventListener('click', translateSentence);
-  el('sentClear').addEventListener('click', () => { clearTimeout(sentTimer); sentBuf = []; sentSim = false; sentEn.textContent = '\u2014'; sentOut.textContent = '\u2014'; });
+  el('sentClear').addEventListener('click', () => { clearTimeout(sentTimer); sentBuf = []; sentChs = []; sentSim = false; sentEn.textContent = '\u2014'; sentOut.textContent = '\u2014'; });
 
   audioRouteEl.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-route]');
