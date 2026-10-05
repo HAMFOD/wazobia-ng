@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAZOBIA Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+:root{
+ --ink:#11110f; --paper:#f4f0e7; --paper-2:#ebe5d9; --surface:#fbf8f1; --surface-2:#eee8dc;
+ --line:#cfc7b8; --line-strong:#968d7e; --text-primary:#171612; --text-secondary:#5f5a51; --text-muted:#81796d;
+ --accent:#16734a; --accent-dark:#0e5235; --accent-bg:rgba(22,115,74,.09); --accent-border:rgba(22,115,74,.35);
+ --amber:#9a6b1f; --amber-bg:rgba(154,107,31,.10); --danger:#9e332d; --danger-bg:rgba(158,51,45,.08);
+ --radius-sm:3px; --radius-md:6px; --radius-lg:10px;
+}
+*{box-sizing:border-box} html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--text-primary);font-family:'DM Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.32;background-image:repeating-linear-gradient(90deg,transparent 0,transparent 39px,rgba(23,22,18,.035) 40px),repeating-linear-gradient(0deg,transparent 0,transparent 39px,rgba(23,22,18,.025) 40px);z-index:-1}
+.shell{max-width:1120px;margin:0 auto;padding:34px 28px 72px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:30px;padding-bottom:18px;border-bottom:1px solid var(--line-strong)}
+.brand{display:flex;align-items:center;gap:14px}.brand-mark{width:46px;height:46px;border-radius:50%;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center;position:relative}.brand-mark:after{content:"";position:absolute;inset:5px;border:1px solid rgba(255,255,255,.45);border-radius:50%}.brand-text .title-row{display:flex;align-items:center;gap:8px}.brand-text .title{font-family:'Libre Baskerville',serif;font-size:20px;font-weight:700;letter-spacing:.015em}.brand-text .subtitle{font-size:10px;color:var(--accent-dark);font-family:'IBM Plex Mono',monospace;letter-spacing:1.6px;margin-top:5px;font-weight:600}.flag-mark{display:inline-flex;width:20px;height:13px;border-radius:2px;overflow:hidden;border:1px solid var(--line-strong);flex-shrink:0;cursor:default}.flag-mark i{display:block;flex:1;font-style:normal;background:#008751}.flag-mark i:nth-child(2){background:#f4f0e7}.topbar-right{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.status-pill,.volume-control,.segmented{border:1px solid var(--line);background:rgba(251,248,241,.8);box-shadow:none}.status-pill{display:flex;align-items:center;gap:7px;padding:7px 12px;border-radius:3px;font-size:12px;font-weight:600;color:var(--text-secondary)}.status-dot{width:7px;height:7px;border-radius:50%;background:var(--text-muted)}.status-pill.connected{border-color:var(--accent-border);background:var(--accent-bg);color:var(--accent-dark)}.status-pill.connected .status-dot{background:var(--accent);box-shadow:0 0 0 3px rgba(22,115,74,.12)}.status-pill.connecting .status-dot{background:var(--amber);animation:blink 1s infinite}.status-pill.connecting{color:var(--amber)}@keyframes blink{50%{opacity:.3}}
+.volume-control{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:3px}.volume-control .vol-icon{font-size:14px;color:var(--text-muted)}.volume-control input[type=range]{appearance:none;width:76px;height:3px;background:var(--line-strong);outline:none}.volume-control input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);box-shadow:0 0 0 1px var(--accent)}.volume-control .vol-value{font-family:'IBM Plex Mono';font-size:11px;color:var(--text-secondary);min-width:18px;text-align:right}.segmented{display:inline-flex;padding:3px;border-radius:3px;gap:2px}.segmented button{border:none;background:transparent;color:var(--text-secondary);font-family:'DM Sans';font-size:12px;font-weight:600;padding:7px 10px;border-radius:2px;cursor:pointer}.segmented button:hover{color:var(--ink)}.segmented button.active{background:var(--ink);color:var(--paper)}.segmented button:disabled{opacity:.4;cursor:not-allowed}
+.hero{background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius-lg);padding:0;margin-bottom:20px;overflow:hidden;position:relative}.hero-watermark{position:absolute;right:-18px;bottom:-18px;width:220px;height:220px;color:var(--accent);opacity:.055;pointer-events:none}.hero.pulse{border-color:var(--accent);box-shadow:0 0 0 4px rgba(22,115,74,.07)}.hero-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding:14px 22px;border-bottom:1px solid var(--line);background:var(--surface-2)}.hero-channel-tag{font-family:'IBM Plex Mono';font-size:11px;color:var(--accent-dark);background:transparent;padding:4px 0;letter-spacing:1px;font-weight:600}.lang-switch{display:inline-flex;gap:0;border:1px solid var(--line-strong);border-radius:3px;background:var(--surface)}.lang-switch button{border:none;border-right:1px solid var(--line);background:transparent;color:var(--text-muted);font-family:'IBM Plex Mono';font-size:11px;font-weight:600;padding:6px 10px;cursor:pointer}.lang-switch button:last-child{border-right:none}.lang-switch button.active{background:var(--accent);color:white}.stage-body{text-align:center;padding:64px 24px 42px;min-height:340px;display:flex;flex-direction:column;justify-content:center}.stage-idle{color:var(--text-muted);font-size:15px}.stage-idle i{display:block;font-size:20px;margin-bottom:12px;color:var(--line-strong)}.stage-translation{font-family:'Libre Baskerville',serif;font-weight:700;font-size:clamp(30px,5vw,56px);line-height:1.18;color:var(--ink);margin:0 0 14px;letter-spacing:-.025em;word-break:break-word}.stage-original{font-family:'Libre Baskerville',serif;font-size:15px;font-style:italic;color:var(--text-secondary);margin:0 0 30px}.stage-original span{color:var(--ink)}.no-voice-note{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--amber);background:var(--amber-bg);padding:5px 9px;border-radius:3px;margin-bottom:18px}.confidence-block{max-width:390px;margin:0 auto 24px}.confidence-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}.confidence-row .label{font-family:'IBM Plex Mono';font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}.confidence-row .value{font-family:'IBM Plex Mono';font-size:12px;color:var(--accent-dark);font-weight:600}.confidence-track{height:4px;background:var(--paper-2);overflow:hidden}.confidence-fill{height:100%;width:0;background:var(--accent);transition:width .4s ease}.confidence-fill.low{background:var(--amber)}
+.btn{appearance:none;font-family:'DM Sans';font-weight:700;font-size:12.5px;letter-spacing:.01em;padding:10px 16px;border-radius:3px;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:transform .12s,background .15s,color .15s}.btn:hover{background:var(--ink);color:var(--paper)}.btn:active{transform:translateY(1px)}.btn:disabled{opacity:.35;cursor:not-allowed}.btn-primary{background:var(--accent);border-color:var(--accent);color:white}.btn-primary:hover{background:var(--accent-dark);color:white}.btn-danger{color:var(--danger);border-color:var(--danger);background:transparent}.btn-danger:hover{background:var(--danger);color:white}.controls-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:760px){.grid{grid-template-columns:1fr}.shell{padding:24px 16px 50px}.topbar-right{width:100%}.stage-body{padding:46px 16px 34px}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:20px 20px 8px}.panel-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;padding-bottom:9px;border-bottom:1px solid var(--line)}.panel-head h2{font-family:'Libre Baskerville',serif;font-size:14px;font-weight:700;margin:0}.panel-head .count{font-family:'IBM Plex Mono';font-size:10px;color:var(--accent-dark);letter-spacing:.3px}.panel-sub{font-size:12px;color:var(--text-muted);margin:10px 0 12px}.ch-list,.hist-list{list-style:none;margin:0;padding:0}.ch-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;color:var(--text-secondary)}.ch-row .ch-id{font-family:'IBM Plex Mono';font-size:10px;color:var(--text-muted);padding:3px 5px;border:1px solid var(--line);min-width:38px;text-align:center}.ch-row .ch-en{flex:1;color:var(--ink);font-weight:600}.ch-row .ch-tr{color:var(--text-muted);font-size:12px;flex-shrink:0;max-width:40%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ch-row.active{background:var(--accent-bg);margin:0 -8px;padding-left:8px;padding-right:8px}.ch-row.active .ch-id{border-color:var(--accent);color:var(--accent-dark)}.ch-row.active .ch-en{color:var(--accent-dark)}.hist-list{max-height:280px;overflow-y:auto}.hist-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}.hist-main{display:flex;flex-direction:column;gap:3px;min-width:0}.hist-main .htext{color:var(--ink);font-family:'Libre Baskerville',serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hist-main .hen{font-size:11px;color:var(--text-muted)}.hist-meta{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}.hist-meta .hconf{font-family:'IBM Plex Mono';font-size:11px;color:var(--accent-dark)}.hist-meta .htime{font-size:10px;color:var(--text-muted)}.empty-note{color:var(--text-muted);font-size:12px;padding:24px 0;text-align:center}.support-banner{background:var(--danger-bg);border:1px solid rgba(158,51,45,.32);border-radius:4px;padding:13px 16px;font-size:13px;margin-bottom:18px;line-height:1.6;color:var(--text-secondary)}.support-banner strong{color:var(--danger)}.footnote{margin-top:28px;padding-top:18px;border-top:1px solid var(--line);font-size:11px;color:var(--text-muted);text-align:center;line-height:1.8}.footnote code{font-family:'IBM Plex Mono';background:var(--surface-2);padding:2px 5px;border:1px solid var(--line);border-radius:2px}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:var(--line-strong)}
+
+.rate-label{font-size:12px;color:var(--text-secondary);align-self:center}.rate-title{font-weight:700;font-size:12.5px}.rate-note{font-size:12px;font-weight:600}.rate-quick{background:var(--accent-bg);border-color:var(--accent)}.kbd{font-family:"IBM Plex Mono",monospace;font-size:10px;opacity:.6;margin-left:6px;border:1px solid currentColor;border-radius:2px;padding:0 4px}#rateBox.rate-need{border-left-color:var(--amber)!important;background:var(--amber-bg)}#rateBox.rate-done{border-left-color:var(--accent)!important}#rateBox.rate-off{border-left-color:var(--danger)!important;background:var(--danger-bg)}.rate-btn{padding:6px 12px}.rate-btn.sel-yes{background:var(--accent);border-color:var(--accent);color:#fff}.rate-btn.sel-no{background:var(--danger);border-color:var(--danger);color:#fff}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true">
+          <path d="M20 50 L20 24 Q20 14 30 14 Q40 14 40 24 L40 50 Q40 55 35 55 L24 55 Q20 55 20 50 Z" fill="currentColor"/>
+          <path d="M20 35 Q9 33 9 41 Q9 47 17 47 L20 47 Z" fill="currentColor"/>
+          <path d="M46 25 Q53 32 46 39" stroke="currentColor" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+          <path d="M51 19 Q62 32 51 45" stroke="currentColor" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="title-row">
+          <span class="title">WAZOBIA Console</span>
+          <span class="flag-mark" title="Nigeria — Yorùbá, Hausa &amp; Igbo"><i></i><i></i><i></i></span>
+        </div>
+        <div class="subtitle">BLE SIGN TRANSLATION</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="volume-control" id="volumeControl">
+        <span class="vol-icon">&#128266;</span>
+        <input type="range" id="volumeSlider" min="0" max="30" value="22" disabled>
+        <span class="vol-value" id="volumeValue">22</span>
+      </div>
+      <div class="segmented" id="audioRoute">
+        <button data-route="dashboard" class="active">Dashboard TTS</button>
+        <button data-route="glove">On-Glove Speaker</button>
+      </div>
+      <div class="status-pill" id="statusPill">
+        <span class="status-dot"></span>
+        <span id="statusText">Disconnected</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="support-banner" id="supportBanner" style="display:none;">
+    <strong>Web Bluetooth isn't available in this browser.</strong> Open this page in Chrome or Edge — desktop or Android. iOS Safari and Firefox don't support Web Bluetooth.
+  </div>
+
+  <div class="hero" id="hero">
+    <svg class="hero-watermark" viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M20 50 L20 24 Q20 14 30 14 Q40 14 40 24 L40 50 Q40 55 35 55 L24 55 Q20 55 20 50 Z" fill="currentColor"/>
+      <path d="M20 35 Q9 33 9 41 Q9 47 17 47 L20 47 Z" fill="currentColor"/>
+      <path d="M46 25 Q53 32 46 39" stroke="currentColor" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+      <path d="M51 19 Q62 32 51 45" stroke="currentColor" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+    </svg>
+    <div class="hero-top">
+      <span class="hero-channel-tag" id="channelTag">No signal</span>
+      <div class="lang-switch" id="langSwitch">
+        <button data-lang="en" class="active">EN</button>
+        <button data-lang="yo">YO</button>
+        <button data-lang="ha">HA</button>
+        <button data-lang="ig">IG</button>
+      </div>
+    </div>
+
+    <div class="stage-body">
+      <div id="idleBlock">
+        <i class="idle-icon">&#9679;</i>
+        <p class="stage-idle">Connect the glove to begin translating</p>
+      </div>
+
+      <div id="activeBlock" style="display:none;">
+        <p class="stage-translation" id="translationText"></p>
+        <p class="stage-original" id="originalText"></p>
+        <div id="noVoiceNote" class="no-voice-note" style="display:none;">Approximate pronunciation — no native voice installed</div>
+
+        <div class="confidence-block">
+          <div class="confidence-row">
+            <span class="label">Confidence</span>
+            <span class="value" id="confidenceValue">0%</span>
+          </div>
+          <div class="confidence-track"><div class="confidence-fill" id="confidenceFill"></div></div>
+        </div>
+
+        <div class="controls-row">
+          <button class="btn btn-primary" id="speakBtn"><span>&#128266;</span> Speak again</button>
+        </div>
+        <div id="rateBox" style="display:none;margin-top:22px;padding:14px 16px;border:1px solid var(--line);border-left:4px solid var(--line-strong);border-radius:3px;">
+          <div class="controls-row" style="justify-content:space-between;margin-bottom:10px;">
+            <span class="rate-title">Rate this gesture</span>
+            <span class="rate-note" id="rateNote"></span>
+          </div>
+          <div class="controls-row" style="margin-bottom:10px;">
+            <button class="btn rate-btn rate-quick" id="rateAllOk" data-field="all" data-val="yes">&#10003; Sign and translation correct <span class="kbd">1</span></button>
+          </div>
+          <div class="controls-row" style="margin-bottom:8px;">
+            <span class="rate-label">Sign recognised correctly?</span>
+            <button class="btn rate-btn" data-field="sign_ok" data-val="yes">&#10003; Yes</button>
+            <button class="btn rate-btn" data-field="sign_ok" data-val="no">&#10007; No <span class="kbd">2</span></button>
+          </div>
+          <div class="controls-row" id="rateTransRow">
+            <span class="rate-label">Translation correct?</span>
+            <button class="btn rate-btn" data-field="translation_ok" data-val="yes">&#10003; Yes</button>
+            <button class="btn rate-btn" data-field="translation_ok" data-val="no">&#10007; No <span class="kbd">3</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls-row" style="margin-bottom:22px;">
+    <button class="btn btn-primary" id="connectBtn">Connect glove</button>
+    <button class="btn btn-danger" id="disconnectBtn" disabled>Disconnect</button>
+    <button class="btn" id="calibrateBtn" disabled>Calibrate glove</button>
+  </div>
+
+  <div class="panel" id="calPanel" style="display:none; margin-bottom:20px;">
+    <div class="panel-head"><h2>Calibration</h2><span class="count" id="calProgress">0/10</span></div>
+    <p class="panel-sub" id="calStatus">Connect and tap Calibrate glove to begin.</p>
+    <div class="controls-row" style="justify-content:flex-start; margin-bottom:14px;">
+      <button class="btn btn-primary" id="calGoBtn" disabled>Capture pose (GO)</button>
+      <button class="btn" id="calRedoBtn" disabled>Redo last</button>
+      <button class="btn btn-danger" id="calCloseBtn">Close</button>
+    </div>
+    <ul class="ch-list" id="calLog"></ul>
+  </div>
+
+  <div class="panel" style="margin-bottom:20px;">
+    <div class="panel-head"><h2>Validation session</h2><span class="count" id="valStats">0 real-user gestures</span></div>
+    <p class="panel-sub">Type a participant ID (for example P02) before each person uses the glove. Only gestures made while an ID is set count as real-user interactions. A gesture is saved to the validation CSV only after you judge it: Sign OK and Translation OK (English: Sign OK only). Keyboard: 1 = all correct, 2 = sign wrong, 3 = translation wrong. Download the validation CSV after every session.</p>
+    <div class="controls-row" style="justify-content:flex-start;margin-bottom:12px;">
+      <input id="participantId" placeholder="Participant ID, e.g. P02" autocomplete="off" style="flex:1;min-width:200px;padding:9px;border:1px solid var(--line-strong);border-radius:3px;background:var(--surface);font-family:'IBM Plex Mono',monospace;font-size:12px;">
+      <button class="btn btn-primary" id="valCsv">Download validation CSV</button>
+      <button class="btn" id="logClear">Clear log</button>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-bottom:20px;">
+    <div class="panel-head"><h2>N-ATLaS connection</h2><span class="count" id="natStatus">Not configured</span></div>
+    <p class="panel-sub">Paste the public URL and API key printed by the server notebook (Kaggle or Colab). Saved in this browser only.</p>
+    <div class="controls-row" style="justify-content:flex-start;margin-bottom:12px;">
+      <input id="natUrl" placeholder="https://xxxx.trycloudflare.com" style="flex:2;min-width:220px;padding:9px;border:1px solid var(--line-strong);border-radius:3px;background:var(--surface);font-family:'IBM Plex Mono',monospace;font-size:12px;">
+      <input id="natKey" type="password" placeholder="API key" style="flex:1;min-width:160px;padding:9px;border:1px solid var(--line-strong);border-radius:3px;background:var(--surface);font-family:'IBM Plex Mono',monospace;font-size:12px;">
+      <button class="btn btn-primary" id="natSave">Save &amp; test</button>
+      <button class="btn" id="natCsv">Download full technical log (CSV)</button>
+    </div>
+    <p class="panel-sub" id="natStats" style="margin-top:0;"></p>
+  </div>
+
+  <div class="panel" style="margin-bottom:20px;">
+    <div class="panel-head"><h2>Sentence composer</h2><span class="count">N-ATLaS</span></div>
+    <p class="panel-sub">Gestures are chained into one sentence and translated together after a 4-second pause.</p>
+    <p class="stage-original" style="margin:0 0 6px;font-style:normal;">English: <span id="sentEn">&mdash;</span></p>
+    <p class="stage-translation" style="font-size:24px;margin:0 0 14px;" id="sentOut">&mdash;</p>
+    <div class="controls-row" style="justify-content:flex-start;margin-bottom:14px;">
+      <button class="btn btn-primary" id="sentGo">Translate now</button>
+      <button class="btn" id="sentClear">Clear</button>
+    </div>
+  </div>
+
+  <details class="panel" style="margin-bottom:20px;">
+    <summary style="cursor:pointer;font-weight:600;">Simulator: try the dashboard without the glove</summary>
+    <p class="panel-sub" style="margin-top:10px;">Each button sends the same kind of packet the glove sends, so the N-ATLaS call, sentence composer and audio all run normally. Simulated gestures are logged as <b>input = simulator</b> and are never counted in the validation results. They do not test sign recognition.</p>
+    <div id="simBtns" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+  </details>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="panel-head"><h2>Gesture channels</h2><span class="count">10 calibrated</span></div>
+      <p class="panel-sub">Live map of the glove's signs, shown in the active language</p>
+      <ul class="ch-list" id="channelList"></ul>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Session history</h2><span class="count" id="histCount">0</span></div>
+      <p class="panel-sub">Translations received this session</p>
+      <ul class="hist-list" id="historyList">
+        <li class="empty-note">Nothing translated yet</li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="footnote">
+    <strong style="color:var(--ink);">WAZOBIA</strong> — from <em>Wa</em> (Yorùbá), <em>Zo</em> (Hausa) and <em>Bia</em> (Igbo), each meaning "come" — a name for Nigeria's linguistic unity, lent here to a system that bridges sign into speech across all three.<br>
+    Packet format <code>TEXT|CONFIDENCE|CHANNEL</code> over BLE (Nordic UART Service). Device advertises as <code>WAZOBIA_Glove</code>. Gesture recognition runs on the glove and in this browser tab; translations are requested from the N-ATLaS server configured above.
+  </p>
+
+</div>
+
+<script>
+(function(){
+
+  // --- N-ATLAS API CONFIGURATION ---
+  // Paste the two values printed by the server notebook (cells 5 and 6).
+  let NATLAS_BASE_URL = ""; // e.g. https://xxxx.trycloudflare.com (no trailing slash)
+  let NATLAS_API_KEY = "";
+  try { NATLAS_BASE_URL = localStorage.getItem("natlas_url") || ""; NATLAS_API_KEY = localStorage.getItem("natlas_key") || ""; } catch(e){}
+  const NATLAS_TIMEOUT_MS = 25000;
+  const NATLAS_NAMES = { yo: "Yoruba", ha: "Hausa", ig: "Igbo" };
+
+  function natlasConfigured(){
+    return NATLAS_BASE_URL.startsWith("http") && !NATLAS_BASE_URL.includes("PASTE_") && !NATLAS_API_KEY.includes("PASTE_");
+  }
+
+  // Up to 3 example pairs from the dashboard's own phrase table (skips names and test markers)
+  function buildExamples(langKey, currentEn){
+    return GESTURES
+      .filter(x => x.en !== currentEn && x[langKey] && !x[langKey].startsWith("[") && x[langKey] !== x.en)
+      .slice(0, 3);
+  }
+
+  async function rawNATLAS(englishPhrase, langLabel, langKey, gesture, maxTok){
+    if (langKey === "en") return englishPhrase;
+    // Proper nouns (same in every language) are not translated
+    if (gesture && gesture.yo === gesture.en && gesture.ha === gesture.en && gesture.ig === gesture.en) return englishPhrase;
+    if (!natlasConfigured()) return null;
+
+    const lang = NATLAS_NAMES[langKey] || langLabel;
+    const messages = [{
+      role: "system",
+      content: "You are a translator. Reply with only the " + lang + " translation of the phrase. No explanation, no quotes, no extra text."
+    }];
+    buildExamples(langKey, englishPhrase).forEach(x => {
+      messages.push({ role: "user", content: "Translate into " + lang + ": " + x.en });
+      messages.push({ role: "assistant", content: x[langKey] });
+    });
+    messages.push({ role: "user", content: "Translate into " + lang + ": " + englishPhrase });
+
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), NATLAS_TIMEOUT_MS);
+    try {
+      const response = await fetch(NATLAS_BASE_URL.replace(/\/$/, "") + "/v1/chat/completions", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + NATLAS_API_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: messages, max_tokens: maxTok || 40, stream: false }),
+        signal: ctrl.signal
+      });
+      if (!response.ok) {
+        console.error("N-ATLaS HTTP", response.status, await response.text());
+        return null;
+      }
+      const data = await response.json();
+      let out = data && data.choices && data.choices[0] && data.choices[0].message
+        ? data.choices[0].message.content : "";
+      out = (out || "").split("\n")[0].trim().replace(/^["“”']+|["“”']+$/g, "");
+      if (!out) return null;
+      console.info("N-ATLaS:", englishPhrase, "->", out);
+      return out;
+    } catch (err) {
+      console.error("N-ATLaS request failed:", err);
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  // --- Integration layer: cache, latency and interaction log (validation evidence) ---
+  const cache = {};
+  let interactions = [];
+  try { interactions = JSON.parse(localStorage.getItem("wazobia_log") || "[]"); } catch(e){}
+  const SESSION_ID = Math.random().toString(36).slice(2, 8);
+  let participant = "";
+  try { participant = localStorage.getItem("wazobia_participant") || ""; } catch(e){}
+  let logSeq = interactions.reduce((m, x) => Math.max(m, Number(x.id) || 0), 0);
+
+  function saveLog(){
+    try { localStorage.setItem("wazobia_log", JSON.stringify(interactions.slice(-5000))); } catch(e){}
+  }
+
+  function logInteraction(meta, langKey, en, out, source, ms, tableVal){
+    const id = ++logSeq;
+    meta.logId = id;
+    interactions.push({
+      id: id, time: new Date().toISOString(), session: SESSION_ID, participant: participant,
+      real_use: (participant && meta.kind !== "prewarm" && meta.input !== "simulator") ? "yes" : "no",
+      input: meta.input || "glove",
+      kind: meta.kind, lang: langKey, channel: meta.ch || "", confidence: meta.input === "simulator" ? "" : (meta.confidence || ""),
+      english: en, output: out || "", shown: out || "", table_value: tableVal || "",
+      source: source, latency_ms: ms, sign_ok: "", translation_ok: ""
+    });
+    saveLog();
+    renderStats();
+  }
+
+  async function fetchNATLASTranslation(en, label, key, gesture, meta, maxTok){
+    meta = meta || { kind: "gesture" };
+    const tv = gesture ? (gesture[key] || "") : "";
+    const k = key + "|" + en;
+    if (cache[k]) { logInteraction(meta, key, en, cache[k], "cache", 0, tv); return cache[k]; }
+    const t0 = performance.now();
+    const out = await rawNATLAS(en, label, key, gesture, maxTok);
+    const ms = Math.round(performance.now() - t0);
+    const source = !out ? "fallback" : (key === "en" || out === en) ? "passthrough" : "natlas";
+    if (source === "natlas") cache[k] = out;
+    logInteraction(meta, key, en, out, source, ms, tv);
+    return out;
+  }
+
+  // --- AUDIO FIX: Persistent player to bypass browser autoplay restrictions ---
+  const player = new Audio();
+  // A tiny 1-second silent audio track to trick the browser into unlocking the speaker
+  const silentWAV = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+
+  const SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+  const TX_CHAR_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+  const RX_CHAR_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+  const DEVICE_NAME_PREFIX = "WAZOBIA_Glove";
+
+  const LANGS = {
+    en:{label:"English", code:"en-US"},
+    yo:{label:"Yorùbá",  code:"yo-NG"},
+    ha:{label:"Hausa",   code:"ha-NG"},
+    ig:{label:"Igbo",    code:"ig-NG"},
+  };
+
+  const GESTURES = [
+    {ch:1,  en:"Good Morning",     yo:"Ẹ kú àárọ̀", ha:"Ina kwana",              ig:"Ụtụtụ ọma"},
+    {ch:2,  en:"My name is",       yo:"Orukọ mi ni",            ha:"Sunana",                 ig:"Aha m bụ"},
+    {ch:3,  en:"I am a student",   yo:"Akẹkọọ ni mi",           ha:"Ni ɗalibi ne",           ig:"Abụ m nwa akwụkwọ"},
+    {ch:4,  en:"Hameed",           yo:"Hameed",                 ha:"Hameed",                 ig:"Hameed"},
+    {ch:5,  en:"This is my work",  yo:"Iṣẹ mi ni eyi",          ha:"Wannan shine aiki na",   ig:"Nke a bụ ọrụ m"},
+    {ch:6,  en:"FUTminna",         yo:"FUTminna",               ha:"FUTminna",               ig:"FUTminna"},
+    {ch:7,  en:"Please",           yo:"Ẹ jọwọ",                 ha:"Don Allah",              ig:"Biko"},
+    {ch:8,  en:"How are you",      yo:"Bawo ni?",                ha:"Yaya kake?",             ig:"Kedu ka ị mere?"},
+    {ch:9,  en:"I need help",      yo:"Mo nilo iranlọwọ",       ha:"Ina buƙatar taimako",    ig:"Achọrọ m enyemaka"},
+    {ch:10, en:"Stop",             yo:"Duro",                    ha:"Tsaya",                  ig:"Kwụsị"},
+  ];
+  const byChannel = {};
+  GESTURES.forEach(g => byChannel[g.ch] = g);
+
+  const el = id => document.getElementById(id);
+  const statusPill = el('statusPill'), statusText = el('statusText');
+  const connectBtn = el('connectBtn'), disconnectBtn = el('disconnectBtn'), speakBtn = el('speakBtn');
+  const hero = el('hero'), idleBlock = el('idleBlock'), activeBlock = el('activeBlock');
+  const translationText = el('translationText'), originalText = el('originalText');
+  const confidenceFill = el('confidenceFill'), confidenceValue = el('confidenceValue');
+  const channelTag = el('channelTag'), noVoiceNote = el('noVoiceNote');
+  const channelListEl = el('channelList'), historyListEl = el('historyList'), histCount = el('histCount');
+  const langSwitch = el('langSwitch'), audioRouteEl = el('audioRoute');
+  const supportBanner = el('supportBanner');
+  const volumeSlider = el('volumeSlider'), volumeValue = el('volumeValue');
+  const calibrateBtn = el('calibrateBtn'), calPanel = el('calPanel'), calStatus = el('calStatus');
+  const calProgress = el('calProgress'), calGoBtn = el('calGoBtn'), calRedoBtn = el('calRedoBtn');
+  const calCloseBtn = el('calCloseBtn'), calLog = el('calLog');
+
+  let bleDevice = null, txChar = null, rxChar = null, connected = false;
+  let currentLang = 'en';
+  let audioRoute = 'dashboard';
+  let lastEntry = null;
+  let history = [];
+  let availableVoices = [];
+  let calActive = false;
+
+  function loadVoices(){
+    availableVoices = ('speechSynthesis' in window) ? window.speechSynthesis.getVoices() : [];
+  }
+  loadVoices();
+  if ('speechSynthesis' in window) window.speechSynthesis.onvoiceschanged = loadVoices;
+
+  function findVoice(langCode){
+    return availableVoices.find(v => v.lang && v.lang.toLowerCase().startsWith(langCode.split('-')[0]));
+  }
+
+  function setStatus(state){
+    statusPill.className = 'status-pill ' + state;
+    if (state === 'connected') statusText.textContent = 'Connected';
+    else if (state === 'connecting') statusText.textContent = 'Connecting…';
+    else statusText.textContent = 'Disconnected';
+  }
+
+  function renderChannelList(activeCh){
+    channelListEl.innerHTML = '';
+    GESTURES.forEach(g => {
+      const li = document.createElement('li');
+      const isActive = activeCh === g.ch;
+      li.innerHTML =
+        '<div class="ch-row' + (isActive ? ' active' : '') + '">' +
+          '<span class="ch-id">CH' + String(g.ch).padStart(2,'0') + '</span>' +
+          '<span class="ch-en">' + g.en + '</span>' +
+          '<span class="ch-tr">' + g[currentLang] + '</span>' +
+        '</div>';
+      channelListEl.appendChild(li);
+    });
+  }
+  renderChannelList(null);
+
+  function renderHistory(){
+    histCount.textContent = history.length;
+    if (history.length === 0){
+      historyListEl.innerHTML = '<li class="empty-note">Nothing translated yet</li>';
+      return;
+    }
+    historyListEl.innerHTML = '';
+    history.forEach(h => {
+      const g = byChannel[h.ch];
+      const li = document.createElement('li');
+      li.innerHTML =
+        '<div class="hist-row">' +
+          '<div class="hist-main">' +
+            '<span class="htext">' + h.text + '</span>' +
+            (currentLang !== 'en' ? '<span class="hen">' + (g ? g.en : '') + '</span>' : '') +
+          '</div>' +
+          '<div class="hist-meta">' +
+            '<span class="hconf">' + h.confidence + '%</span>' +
+            '<span class="htime">' + h.time + '</span>' +
+          '</div>' +
+        '</div>';
+      historyListEl.appendChild(li);
+    });
+  }
+
+  function renderStage(){
+    if (!lastEntry) return;
+    const g = byChannel[lastEntry.ch];
+    const text = lastEntry.text; 
+    const enText = g ? g.en : lastEntry.text;
+
+    idleBlock.style.display = 'none';
+    activeBlock.style.display = 'block';
+    translationText.textContent = text;
+    originalText.innerHTML = currentLang === 'en' ? '&nbsp;' : 'English: <span>' + enText + '</span>';
+    confidenceFill.style.width = lastEntry.confidence + '%';
+    confidenceFill.className = 'confidence-fill' + (lastEntry.confidence < 75 ? ' low' : '');
+    confidenceValue.textContent = lastEntry.confidence + '%';
+    channelTag.textContent = 'CH' + String(lastEntry.ch).padStart(2,'0');
+
+    const voice = currentLang === 'en' ? true : findVoice(LANGS[currentLang].code);
+    noVoiceNote.style.display = (currentLang !== 'en' && !voice) ? 'inline-flex' : 'none';
+
+    renderChannelList(lastEntry.ch);
+    renderRate();
+  }
+
+  function speak(text, langCode, channel){
+    if (audioRoute !== 'dashboard') return;
+    
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    
+    const audioPath = `audio/${currentLang}_${channel}.mp3`;
+    player.src = audioPath;
+    
+    player.play().catch(err => {
+      console.warn("MP3 playback failed or file missing (" + audioPath + "). Falling back to browser TTS:", err);
+      if ('speechSynthesis' in window) {
+        const utter = new SpeechSynthesisUtterance(text);
+        const voice = findVoice(langCode);
+        if (voice) utter.voice = voice;
+        utter.lang = langCode;
+        utter.rate = 0.95;
+        window.speechSynthesis.speak(utter);
+      }
+    });
+  }
+
+  function pulseHero(){
+    hero.classList.add('pulse');
+    setTimeout(() => hero.classList.remove('pulse'), 900);
+  }
+
+  async function handlePacket(raw, src){
+    const parts = raw.split('|');
+    const text = parts[0] || '';
+    const confidence = parseInt(parts[1], 10) || 0;
+    const ch = parts[2] ? parseInt(parts[2], 10) : null;
+
+    if (text === 'PONG') return;
+    if (text === 'VOL_ACK') {
+      volumeSlider.value = confidence; 
+      volumeValue.textContent = confidence;
+      return;
+    }
+    if (text === 'CAL_READY') {
+      const g = byChannel[ch];
+      calProgress.textContent = ch + '/10';
+      calStatus.textContent = 'Hold the pose for "' + (g ? g.en : 'gesture ' + ch) + '", then tap Capture.';
+      calGoBtn.disabled = false;
+      return;
+    }
+    if (text === 'CAL_CAPTURED') {
+      const g = byChannel[ch];
+      const dist = (confidence / 10).toFixed(1);
+      const tooClose = confidence < 25; 
+      const li = document.createElement('li');
+      li.innerHTML =
+        '<div class="ch-row' + (tooClose ? '' : '') + '">' +
+          '<span class="ch-id">CH' + String(ch).padStart(2,'0') + '</span>' +
+          '<span class="ch-en">' + (g ? g.en : '') + '</span>' +
+          '<span class="ch-tr" style="color:' + (tooClose ? 'var(--danger)' : 'var(--accent-dark)') + ';">' +
+            (tooClose ? 'too close (' + dist + ')' : 'ok (' + dist + ')') +
+          '</span>' +
+        '</div>';
+      calLog.prepend(li);
+      calRedoBtn.disabled = false;
+      if (tooClose) {
+        calStatus.textContent = 'Too similar to a nearby gesture (' + dist + ' apart). Tap Redo to retry with a more distinct pose, or wait for the next prompt to accept it anyway.';
+      }
+      return;
+    }
+    if (text === 'CAL_DONE') {
+      calStatus.textContent = 'Calibration complete — saved to the glove. You can close this panel.';
+      calGoBtn.disabled = true;
+      calRedoBtn.disabled = true;
+      calActive = false;
+      return;
+    }
+    if (!ch || !byChannel[ch]) return;
+
+    const g = byChannel[ch];
+    const englishPhrase = g.en;
+    
+    const gestureMeta = { kind: "gesture", ch: ch, confidence: confidence, input: src || "glove" };
+    let translatedText = await fetchNATLASTranslation(englishPhrase, LANGS[currentLang].label, currentLang, g, gestureMeta);
+    
+    // Fallback to local static dictionary if the internet/API request fails
+    if (!translatedText) {
+        translatedText = g[currentLang];
+    }
+
+    const prevRec = lastEntry ? interactions.find(x => x.id === lastEntry.logId) : null;
+    prevUnrated = !!(prevRec && prevRec.real_use === "yes" && !isRated(prevRec));
+
+    const logRec = interactions.find(x => x.id === gestureMeta.logId);
+    if (logRec){ logRec.shown = translatedText; saveLog(); }
+
+    const entry = {
+        logId: gestureMeta.logId,
+        ch, 
+        confidence, 
+        text: translatedText, 
+        time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})
+    };
+    
+    lastEntry = entry;
+    history.unshift(entry);
+    history = history.slice(0, 30);
+
+    renderStage();
+    renderHistory();
+    pulseHero();
+    speakBtn.disabled = false;
+
+    speak(translatedText, LANGS[currentLang].code, ch);
+    sentencePush(g, src);
+  }
+
+  // --- Simulator: same pipeline as a glove packet, tagged input=simulator ---
+  const simBtns = el('simBtns');
+  GESTURES.forEach(g => {
+    const b = document.createElement('button');
+    b.className = 'btn'; b.type = 'button';
+    b.textContent = g.ch + '. ' + g.en;
+    b.addEventListener('click', () => handlePacket(g.en + '|100|' + g.ch, 'simulator'));
+    simBtns.appendChild(b);
+  });
+
+  async function writeRx(command){
+    if (!rxChar) return;
+    try { await rxChar.writeValue(new TextEncoder().encode(command)); }
+    catch(e){ console.warn('RX write failed', e); }
+  }
+
+  async function connect(){
+    if (!navigator.bluetooth){ supportBanner.style.display = 'block'; return; }
+    
+    player.src = silentWAV;
+    player.play().catch(e => console.warn("Audio prime failed", e));
+    
+    if ('speechSynthesis' in window) {
+      let silentUtter = new SpeechSynthesisUtterance('');
+      silentUtter.volume = 0;
+      window.speechSynthesis.speak(silentUtter);
+    }
+
+    try{
+      setStatus('connecting');
+      bleDevice = await navigator.bluetooth.requestDevice({
+        filters: [{ namePrefix: DEVICE_NAME_PREFIX }],
+        optionalServices: [SERVICE_UUID]
+      });
+      bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
+      const server = await bleDevice.gatt.connect();
+      const service = await server.getPrimaryService(SERVICE_UUID);
+      txChar = await service.getCharacteristic(TX_CHAR_UUID);
+      rxChar = await service.getCharacteristic(RX_CHAR_UUID).catch(() => null);
+
+      await txChar.startNotifications();
+      txChar.addEventListener('characteristicvaluechanged', (event) => {
+        handlePacket(new TextDecoder().decode(event.target.value));
+      });
+
+      connected = true;
+      setStatus('connected');
+      
+      connectBtn.disabled = true;
+      disconnectBtn.disabled = false;
+      document.querySelectorAll('#audioRoute button').forEach(b => b.disabled = false);
+      volumeSlider.disabled = false;
+      calibrateBtn.disabled = false;
+      writeRx(audioRoute === 'dashboard' ? 'MUTE_GLOVE' : 'UNMUTE_GLOVE');
+    }catch(err){
+      console.error(err);
+      setStatus('disconnected');
+    }
+  }
+  
+  function onDisconnected(){
+    connected = false;
+    setStatus('disconnected');
+    connectBtn.disabled = false;
+    disconnectBtn.disabled = true;
+    document.querySelectorAll('#audioRoute button').forEach(b => b.disabled = true);
+    volumeSlider.disabled = true;
+    calibrateBtn.disabled = true;
+    calPanel.style.display = 'none';
+    calActive = false;
+  }
+
+  function disconnect(){
+    if (bleDevice && bleDevice.gatt.connected) bleDevice.gatt.disconnect();
+    onDisconnected();
+  }
+
+  connectBtn.addEventListener('click', connect);
+  disconnectBtn.addEventListener('click', disconnect);
+  speakBtn.addEventListener('click', () => {
+    if (!lastEntry) return;
+    speak(lastEntry.text, LANGS[currentLang].code, lastEntry.ch);
+  });
+
+  langSwitch.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-lang]');
+    if (!btn) return;
+    currentLang = btn.dataset.lang;
+    langSwitch.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+    renderChannelList(lastEntry ? lastEntry.ch : null);
+    renderHistory();
+    if (lastEntry) renderStage();
+    prewarm(currentLang);
+  });
+
+  // --- N-ATLaS connection, prewarm, sentence composer, evidence log ---
+  const natUrl = el('natUrl'), natKey = el('natKey'), natStatus = el('natStatus'), natStats = el('natStats');
+  const sentEn = el('sentEn'), sentOut = el('sentOut');
+  natUrl.value = NATLAS_BASE_URL; natKey.value = NATLAS_API_KEY;
+  natStatus.textContent = natlasConfigured() ? 'Configured' : 'Not configured';
+
+  // --- Validation session: participant ID, ratings, log controls ---
+  const participantInput = el('participantId'), valStats = el('valStats');
+  const rateBox = el('rateBox'), rateTransRow = el('rateTransRow'), rateNote = el('rateNote'), rateAllOk = el('rateAllOk');
+  let prevUnrated = false;
+
+  participantInput.value = participant;
+  participantInput.addEventListener('input', () => {
+    // Keep IDs clean and consistent: upper case, letters/digits/dash only (p02 -> P02)
+    participant = participantInput.value.toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+    participantInput.value = participant;
+    try { localStorage.setItem('wazobia_participant', participant); } catch(e){}
+    renderStats();
+    renderRate();
+  });
+
+  function isRated(rec){ return !!rec.sign_ok && (rec.lang === 'en' || !!rec.translation_ok); }
+
+  function renderRate(){
+    const rec = lastEntry ? interactions.find(x => x.id === lastEntry.logId) : null;
+    rateBox.style.display = rec ? 'block' : 'none';
+    if (!rec) return;
+    const isEn = rec.lang === 'en';
+    rateTransRow.style.display = isEn ? 'none' : 'flex';
+    rateAllOk.innerHTML = (isEn ? '&#10003; Sign correct' : '&#10003; Sign and translation correct') + ' <span class="kbd">1</span>';
+    rateBox.querySelectorAll('.rate-btn').forEach(b => {
+      const cur = rec[b.dataset.field];
+      b.classList.toggle('sel-yes', cur === 'yes' && b.dataset.val === 'yes' && b.dataset.field !== 'all');
+      b.classList.toggle('sel-no', cur === 'no' && b.dataset.val === 'no');
+    });
+    rateBox.classList.remove('rate-need', 'rate-done', 'rate-off');
+    if (rec.real_use !== 'yes') {
+      rateBox.classList.add('rate-off');
+      rateNote.textContent = 'No participant ID: this gesture will not be counted';
+      rateNote.style.color = 'var(--danger)';
+    } else if (isRated(rec)) {
+      rateBox.classList.add('rate-done');
+      rateNote.textContent = 'Judged: saved to the validation CSV';
+      rateNote.style.color = 'var(--accent)';
+    } else {
+      rateBox.classList.add('rate-need');
+      rateNote.textContent = prevUnrated ? 'Judge this gesture to save it (the previous one was not judged and will not be saved)' : 'Judge this gesture to save it to the validation CSV';
+      rateNote.style.color = 'var(--amber)';
+    }
+  }
+
+  function applyRating(field, val){
+    if (!lastEntry) return;
+    const rec = interactions.find(x => x.id === lastEntry.logId);
+    if (!rec) return;
+    if (field === 'all') { rec.sign_ok = 'yes'; rec.translation_ok = rec.lang === 'en' ? '' : 'yes'; }
+    else if (field === 'translation_ok' && rec.lang === 'en') return;
+    else rec[field] = val;
+    if (isRated(rec) && !rec.judged_at) rec.judged_at = new Date().toISOString();
+    saveLog();
+    renderRate();
+    renderStats();
+  }
+  rateBox.addEventListener('click', (e) => {
+    const b = e.target.closest('.rate-btn');
+    if (b) applyRating(b.dataset.field, b.dataset.val);
+  });
+  document.addEventListener('keydown', (e) => {
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === '1') applyRating('all', 'yes');
+    else if (e.key === '2') applyRating('sign_ok', 'no');
+    else if (e.key === '3') applyRating('translation_ok', 'no');
+  });
+  el('logClear').addEventListener('click', () => {
+    if (!confirm('Delete every logged interaction in this browser? Download the CSVs first.')) return;
+    interactions = [];
+    saveLog();
+    renderStats();
+    renderRate();
+  });
+
+  // --- CSV export helpers ---
+  function csvCell(v){
+    v = (v == null ? '' : String(v));
+    return /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  }
+  function saveCsv(name, rows){
+    const csv = rows.map(r => r.map(csvCell).join(',')).join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = name;
+    a.click();
+  }
+  const p2 = n => String(n).padStart(2, '0');
+  const localDate = d => d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
+  const localTime = d => p2(d.getHours()) + ':' + p2(d.getMinutes()) + ':' + p2(d.getSeconds());
+  const SRC_LABEL = { natlas: 'N-ATLaS (live)', cache: 'N-ATLaS (cached)', fallback: 'Dictionary fallback', passthrough: 'Unchanged (name or English)' };
+  const YN = v => v === 'yes' ? 'Yes' : v === 'no' ? 'No' : 'Not rated';
+
+  // Clean file for the submission: one row per real-user gesture
+  function downloadValidation(){
+    const rows = interactions.filter(x => x.kind === 'gesture' && x.real_use === 'yes' && isRated(x));
+    if (!rows.length) { alert('Nothing to save yet. A gesture is saved only after you judge it (Sign OK and Translation OK).'); return; }
+    const head = ['Entry', 'Participant ID', 'Date', 'Time', 'Judged at', 'Language', 'Sign (English phrase)', 'Glove channel', 'Confidence (%)', 'Translation shown', 'N-ATLaS output', 'Dictionary reference', 'Output source', 'Latency (ms)', 'Sign OK', 'Translation OK', 'Log ID'];
+    const body = rows.map((r, i) => {
+      const d = new Date(r.time), j = r.judged_at ? new Date(r.judged_at) : null;
+      return [i + 1, r.participant, localDate(d), localTime(d), j ? localTime(j) : '', (LANGS[r.lang] || {}).label || r.lang, r.english, r.channel, r.confidence,
+              r.shown || r.output, r.output, r.table_value, SRC_LABEL[r.source] || r.source, r.latency_ms,
+              YN(r.sign_ok), r.lang === 'en' ? 'N/A' : YN(r.translation_ok), r.id];
+    });
+    saveCsv('WAZOBIA_validation_log_' + localDate(new Date()) + '.csv', [head].concat(body));
+  }
+  el('valCsv').addEventListener('click', downloadValidation);
+
+  function renderStats(){
+    const n = interactions.filter(x => x.source === 'natlas');
+    const avg = n.length ? Math.round(n.reduce((a, x) => a + x.latency_ms, 0) / n.length) : 0;
+    natStats.textContent = interactions.length + ' logged \u00b7 ' + n.length + ' model calls \u00b7 avg ' + avg + ' ms';
+    const real = interactions.filter(x => x.kind === 'gesture' && x.real_use === 'yes');
+    const judged = real.filter(isRated);
+    const pending = real.filter(x => !isRated(x) && x.session === SESSION_ID).length;
+    const people = new Set(judged.map(x => x.participant)).size;
+    valStats.textContent = judged.length + ' judged (in CSV) \u00b7 ' + pending + ' awaiting judgement \u00b7 ' + people + ' participant' + (people === 1 ? '' : 's');
+    valStats.style.color = pending ? 'var(--amber)' : '';
+  }
+
+  renderStats();
+
+  let warming = false;
+  async function prewarm(lang){
+    if (warming || lang === 'en' || !natlasConfigured()) return;
+    warming = true;
+    const todo = GESTURES.filter(g => !(g.yo === g.en && g.ha === g.en && g.ig === g.en));
+    for (let i = 0; i < todo.length; i++){
+      if (currentLang !== lang) break;
+      natStatus.textContent = 'Warming ' + NATLAS_NAMES[lang] + ' ' + (i + 1) + '/' + todo.length;
+      const out = await fetchNATLASTranslation(todo[i].en, LANGS[lang].label, lang, todo[i], { kind: 'prewarm', ch: todo[i].ch });
+      if (!out){ natStatus.textContent = 'No reply: check URL and key'; warming = false; return; }
+    }
+    natStatus.textContent = currentLang === lang ? 'Ready: ' + NATLAS_NAMES[lang] + ' cached' : 'Configured';
+    warming = false;
+  }
+
+  async function saveAndTest(){
+    NATLAS_BASE_URL = natUrl.value.trim().replace(/\/$/, ''); NATLAS_API_KEY = natKey.value.trim();
+    try { localStorage.setItem('natlas_url', NATLAS_BASE_URL); localStorage.setItem('natlas_key', NATLAS_API_KEY); } catch(e){}
+    natStatus.textContent = 'Testing\u2026';
+    try {
+      const r = await fetch(NATLAS_BASE_URL + '/health');
+      natStatus.textContent = r.ok ? 'Server reachable' : 'Server error ' + r.status;
+      if (r.ok) prewarm(currentLang);
+    } catch(e){ natStatus.textContent = 'Cannot reach server'; }
+  }
+
+  let sentBuf = [], sentTimer = null, sentSim = false, lastPush = { ch: 0, t: 0 };
+  function sentencePush(g, src){
+    const now = Date.now();
+    if (lastPush.ch === g.ch && now - lastPush.t < 1500){ lastPush.t = now; return; }
+    lastPush = { ch: g.ch, t: now };
+    sentBuf.push(g.en);
+    if (src === 'simulator') sentSim = true;
+    sentEn.textContent = sentBuf.join(' ');
+    clearTimeout(sentTimer);
+    if (sentBuf.length >= 2) sentTimer = setTimeout(translateSentence, 4000);
+  }
+  async function translateSentence(){
+    clearTimeout(sentTimer);
+    if (!sentBuf.length) return;
+    const en = sentBuf.join(' ');
+    const sentInput = sentSim ? 'simulator' : 'glove';
+    sentBuf = []; sentSim = false;
+    sentOut.textContent = '\u2026';
+    const out = currentLang === 'en' ? en : await fetchNATLASTranslation(en, LANGS[currentLang].label, currentLang, null, { kind: 'sentence', input: sentInput }, 90);
+    sentOut.textContent = out || '(model unavailable)';
+    if (out && 'speechSynthesis' in window){
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(out), v = findVoice(LANGS[currentLang].code);
+      if (v) u.voice = v;
+      u.lang = LANGS[currentLang].code;
+      window.speechSynthesis.speak(u);
+    }
+  }
+
+  function downloadLog(){
+    const cols = ['id', 'time', 'session', 'participant', 'real_use', 'input', 'kind', 'lang', 'channel', 'confidence', 'english', 'output', 'shown', 'table_value', 'source', 'latency_ms', 'sign_ok', 'translation_ok', 'judged_at'];
+    saveCsv('WAZOBIA_full_technical_log_' + localDate(new Date()) + '.csv', [cols].concat(interactions.map(r => cols.map(c => r[c]))));
+  }
+
+  el('natSave').addEventListener('click', saveAndTest);
+  el('natCsv').addEventListener('click', downloadLog);
+  el('sentGo').addEventListener('click', translateSentence);
+  el('sentClear').addEventListener('click', () => { clearTimeout(sentTimer); sentBuf = []; sentSim = false; sentEn.textContent = '\u2014'; sentOut.textContent = '\u2014'; });
+
+  audioRouteEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-route]');
+    if (!btn || btn.disabled) return;
+    audioRoute = btn.dataset.route;
+    audioRouteEl.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+    writeRx(audioRoute === 'dashboard' ? 'MUTE_GLOVE' : 'UNMUTE_GLOVE');
+    if (audioRoute === 'glove' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+  });
+
+  let volumeDebounce = null;
+  volumeSlider.addEventListener('input', () => {
+    volumeValue.textContent = volumeSlider.value;
+    clearTimeout(volumeDebounce);
+    volumeDebounce = setTimeout(() => {
+      writeRx('VOL:' + volumeSlider.value);
+    }, 180);
+  });
+
+  calibrateBtn.addEventListener('click', () => {
+    calPanel.style.display = 'block';
+    calLog.innerHTML = '';
+    calProgress.textContent = '0/10';
+    calStatus.textContent = 'Starting calibration…';
+    calGoBtn.disabled = true;
+    calRedoBtn.disabled = true;
+    calActive = true;
+    writeRx('CAL');
+    calPanel.scrollIntoView({behavior:'smooth', block:'nearest'});
+  });
+
+  calGoBtn.addEventListener('click', () => {
+    calStatus.textContent = 'Hold still — capturing…';
+    calGoBtn.disabled = true;
+    writeRx('GO');
+  });
+
+  calRedoBtn.addEventListener('click', () => {
+    calRedoBtn.disabled = true;
+    writeRx('REDO');
+  });
+
+  calCloseBtn.addEventListener('click', () => {
+    calPanel.style.display = 'none';
+  });
+
+  document.querySelectorAll('#audioRoute button').forEach(b => b.disabled = true);
+
+  if (!navigator.bluetooth){
+    supportBanner.style.display = 'block';
+    connectBtn.disabled = true;
+  }
+})();
+</script>
+</body>
+</html>
