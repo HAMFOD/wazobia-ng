@@ -14,7 +14,7 @@ Built for the National AI Innovation Challenge 2026.
 4. If the server does not reply, the dashboard shows a built-in reference dictionary instead, so the glove keeps working offline.
 5. Every gesture can be judged by an observer (sign correct? translation correct?) and exported as a CSV for validation.
 
-The architecture, setup steps and usage are described in [docs/WAZOBIA_Technical_Documentation.pdf](docs/WAZOBIA_Technical_Documentation.pdf).
+The architecture, setup steps and usage are described in [docs/WAZOBIA_Technical_Documentation.pdf]([docs/WAZOBIA_Technical_Documentation.pdf](https://wazobia-ng-vz23.vercel.app/doc/WAZOBIA_NG_Technical_Documentation.pdf)).
 
 ## Platform Compatibility
 
